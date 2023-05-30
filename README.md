@@ -22,7 +22,7 @@ Create some HTML, text, and JSON (with JSONSchema) files inside `content`. The u
 ## Sample docker-compose setup
 
 ```
-compose install
+composer install
 docker compose up -d
 ```
 
@@ -37,7 +37,7 @@ Reload http://localhost:8080/nocms/ and log in.
 ## Setup
 
 ```
-compose install
+composer install
 ```
 
 Place directories `nocms-private` and `nocms-public` on your webserver.
