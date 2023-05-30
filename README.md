@@ -29,7 +29,7 @@ Reload http://localhost:8080/nocms/ and log in.
 compose install
 ```
 
-Place directories `nocms-private` and `nocms-public` on your weserver.
+Place directories `nocms-private` and `nocms-public` on your webserver.
 
 Place `vendor` inside `nocms-private`.
 
