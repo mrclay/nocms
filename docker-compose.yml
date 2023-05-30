@@ -6,6 +6,7 @@ services:
     working_dir: /var/www/html/
     ports:
       - "8080:80"
+    user: "1000:1000"
     volumes:
       - ./sample-site/index.php:/var/www/html/index.php
       - ./src/nocms-public:/var/www/html/nocms

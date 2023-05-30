@@ -16,13 +16,13 @@ Create some HTML, text, and JSON (with JSONSchema) files inside `content`. The u
 
 ## Requirements
 
-* PHP 8
-* Composer
+* Deployment: PHP 8
+* Setup: Composer (or Docker)
 
 ## Sample docker-compose setup
 
 ```
-composer install
+bash run-composer.sh install
 docker compose up -d
 ```
 
