@@ -4,7 +4,7 @@ NoCMS is a just a web-based editor for premade files in a single directory.
 
 ## Use case
 
-You have a mostly-static PHP site and want to give a client a bit of control over some HTML and settings without a CMS overhaul: Drop some HTML fragments in the NoCMS `content` directory, use `readfile(...)` or `json_decode(file_get_contents(...))` to integrate the content.
+You have a mostly-static PHP site and want to give a client a bit of control over some HTML and settings without a CMS overhaul: Drop some HTML fragments in the NoCMS `content` directory, use `readfile(...)` or `file_get_contents(...)` to integrate the content.
 
 ## Features
 
