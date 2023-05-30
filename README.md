@@ -1,7 +1,16 @@
 # NoCMS
 
-NoCMS is a just a web-based editor for files in a single directory. You, the developer,
-create the files. The user can edit them. Your site can use them as you like.
+NoCMS is a just a web-based editor for premade files in a single directory. 
+
+Create some HTML, text, and JSON (with JSONSchema) files inside `content`. The user can log in and edit them. The site can use them for content/settings.
+
+## Features
+
+* HTML fragments edited with CKEditor
+* JSON edited/validated client-side by react-jsonschema-form
+* A specified number of timestamped backups are kept on disk
+* Predictable filenames in `content` directory for use in your site/app
+* Auth system simple to integrate into something else
 
 ## Requirements
 
@@ -49,6 +58,6 @@ Reload http://example.com/nocms-public/ and log in.
 
 The good: Password auth is done via `password_verify` and the session is verified via a [JWT](https://github.com/firebase/php-jwt) stored in a cookie. Content edits require POST operations protected by CSRF tokens (HMAC-SHA-256). An attacker who gained entry could not alter PHP files.
 
-The not great: Authentication is single-user. The JWT doesn't expire. There's nothing fancy like IP banning or throttling. An attacker that gained entry could edit raw HTML that you possibly display on the site.
+The not great: Authentication is single-user. The JWT doesn't expire. There's nothing fancy like IP banning/throttling or user logging. An attacker that gained entry could edit raw HTML/JSON that you possibly display/consume on the site.
 
 **Tip:** For best protection, run NoCMS-edited content through an [HTML sanitizer](https://packagist.org/packages/ezyang/htmlpurifier) before output. Yes, I should probably build this in.
