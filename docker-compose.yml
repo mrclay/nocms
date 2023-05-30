@@ -1,0 +1,13 @@
+version: "3.8"
+services:
+  site:
+    image: php:8-apache
+    build: .
+    working_dir: /var/www/html/
+    ports:
+      - "8080:80"
+    volumes:
+      - ./sample-site/index.php:/var/www/html/index.php
+      - ./src/nocms-public:/var/www/html/nocms
+      - ./src/nocms-private:/var/www/nocms-private
+      - ./vendor:/var/www/nocms-private/vendor

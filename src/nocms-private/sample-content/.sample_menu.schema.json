@@ -1,0 +1,25 @@
+{
+  "type": "array",
+  "items": {
+    "type": "object",
+    "required": ["title", "url"],
+    "properties": {
+      "title": {
+        "type": "string",
+        "title": "Title",
+        "default": ""
+      },
+      "url": {
+        "type": "string",
+        "title": "URL",
+        "default": "/"
+      },
+      "newWindow": {
+        "type": "boolean",
+        "title": "Open in new window",
+        "default": false
+      }
+    }
+  },
+  "default": []
+}

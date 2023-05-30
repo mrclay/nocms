@@ -1,0 +1,44 @@
+.page {
+  margin: 0 auto;
+  max-width: 950px;
+  padding: 2rem;
+}
+
+header {
+  border-bottom: 1px solid #ccc;
+  padding-bottom: 2rem;
+  display: flex;
+  justify-content: space-between;
+}
+
+ul {
+  margin: 0;
+  padding: 0;
+}
+.list-group-item {
+  font-size: 2rem;
+  display: flex;
+  justify-content: space-between;
+}
+.list-group-item .label {
+  font-size: 1rem;
+}
+.list-group-item a {
+  flex: 1;
+}
+
+#editor {
+  outline: 1px solid #ccc;
+}
+
+a:any-link {
+  color: #000;
+}
+
+.built-in-submit {
+  margin-top: 2rem;
+}
+
+.logout-form {
+  float: right;
+}
