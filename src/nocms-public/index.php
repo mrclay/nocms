@@ -23,8 +23,8 @@ $private = $_NOCMS_CONFIG['privatePath'];
 // Find/load autoloader.
 
 $autoloads = [
-  "{$private}{$ds}/vendor/autoload.php",
-  __DIR__ . "{$ds}/vendor/autoload.php",
+  "{$private}{$ds}vendor{$ds}autoload.php",
+  __DIR__ . "{$ds}vendor{$ds}autoload.php",
 ];
   $autoloadFound = false;
 foreach ($autoloads as $autoload) {
