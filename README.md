@@ -11,7 +11,6 @@ You have a mostly-static PHP site and want to give a client a bit of control ove
 * CKEditor for nice editing of HTML blocks
 * Nice Bootstrap forms for JSON created with [react-jsonschema-form](https://github.com/rjsf-team/react-jsonschema-form)
 * A specified number of timestamped backups are kept on disk
-* Predictable filenames in `content` directory for use in your site/app
 * Auth system simple to integrate into something else
 * Very basic branding/theming via config/CSS
 * Basic web-based installer with sample content
