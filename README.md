@@ -4,10 +4,14 @@ NoCMS is a just a web-based editor for premade files in a single directory.
 
 Create some HTML, text, and JSON (with JSONSchema) files inside `content`. The user can log in and edit them. The site can use them for content/settings.
 
+## Use case
+
+You have a mostly-static PHP site and want to give a client a bit of control over some HTML and settings without a CMS overhaul: Drop some HTML fragments in the NoCMS `content` directory, use `readfile(...)` or `json_decode(file_get_contents(...))` to integrate the content.
+
 ## Features
 
-* HTML fragments edited with CKEditor
-* JSON edited/validated client-side by [react-jsonschema-form](https://github.com/rjsf-team/react-jsonschema-form)
+* CKEditor for nice editing of HTML blocks
+* Nice Bootstrap forms for JSON created with [react-jsonschema-form](https://github.com/rjsf-team/react-jsonschema-form)
 * A specified number of timestamped backups are kept on disk
 * Predictable filenames in `content` directory for use in your site/app
 * Auth system simple to integrate into something else
