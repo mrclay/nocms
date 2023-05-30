@@ -39,4 +39,8 @@ if (!$autoloadFound) {
 
 require "{$private}{$ds}api.php";
 
-handleRequest();
+try {
+  handleRequest();
+} catch (\Exception $ex) {
+  die($ex->getMessage());
+}

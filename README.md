@@ -21,7 +21,7 @@ Load http://localhost:8080/nocms/ and give a password to get a hash.
 
 Place the hash into `nocms-public/nocms-config.php` to allow authentication.
 
-Reload http://localhost:8080/nocms/ and log in. 
+Reload http://localhost:8080/nocms/ and log in.
 
 ## Setup
 
@@ -47,7 +47,7 @@ Reload http://example.com/nocms-public/ and log in.
 
 ## Security
 
-The good: Password auth is done via `password_verify` and the session is verified via a [JWT](https://github.com/firebase/php-jwt) stored in a cookie. Content edits require POST operations (naturally CSRF resistant). An attacker who gained entry could not alter PHP files.
+The good: Password auth is done via `password_verify` and the session is verified via a [JWT](https://github.com/firebase/php-jwt) stored in a cookie. Content edits require POST operations protected by CSRF tokens (HMAC-SHA-256). An attacker who gained entry could not alter PHP files.
 
 The not great: Authentication is single-user. The JWT doesn't expire. There's nothing fancy like IP banning or throttling. An attacker that gained entry could edit raw HTML that you possibly display on the site.
 

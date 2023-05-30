@@ -41,6 +41,7 @@ function authenticate() {
   $h = escaper();
 
   if (!empty($_POST['nocms-logout'])) {
+    assertNotCsrf();
     logout();
     $ret->location = getConfig('siteHome') . "?loggedOut=1";
     $ret->statusCode = 302;
@@ -186,6 +187,23 @@ function adminSiteName() {
   return getConfig('adminSiteName');
 }
 
+function assertNotCsrf() {
+  $key = getConfig('jwtSecretKey');
+  $token = (string)($_POST['nocms-csrf'] ?? '');
+  [$value, $hmac] = explode(' ', $token);
+
+  if (!hash_equals($hmac, hash_hmac('sha256', $value, $key))) {
+    throw new \Exception('Bad CRSF token.');
+  }
+}
+
+function createCsrfToken() {
+  $key = getConfig('jwtSecretKey');
+  $value = bin2hex(random_bytes(16));
+  $hmac = hash_hmac('sha256', $value, $key);
+  return "$value $hmac";
+}
+
 function escaper() {
   return fn($str) => htmlspecialchars($str, ENT_QUOTES);
 }
@@ -212,6 +230,11 @@ function handleRequest() {
   if ($page === 'edit') {
     return pageEdit();
   }
+
+  if ($action) {
+    assertNotCsrf();
+  }
+
   if ($action === 'edit') {
     return actionEdit();
   }
@@ -269,6 +292,7 @@ function pageEdit() {
       data-type="{$h($asset->getType()->typeName)}"
       data-schema="{$h($asset->getJsonSchema())}"
     >
+      <input type=hidden name="nocms-csrf" value="{$h(createCsrfToken())}">
       <input type=hidden name=action value=edit>
       <input type=hidden name=basename value="{$h($basename)}">
       {$el}

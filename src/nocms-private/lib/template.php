@@ -21,6 +21,7 @@ $h = \NoCms\escaper();
     <div class="page">
       <?php if ($loggedIn): ?>
       <form method="POST" action="" class="logout-form">
+        <input type="hidden" name="nocms-csrf" value="<?= $h(\NoCms\createCsrfToken()) ?>">
         <input type="hidden" name="nocms-logout" value="1">
         <button class="btn btn-default">Log out</button>
       </form>
