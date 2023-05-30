@@ -112,8 +112,6 @@ EOD;
   if ($pwd) {
     // Trying to log in.
     if (!password_verify($pwd, getConfig('pwdHash'))) {
-      sleep(5);
-
       $ret->statusCode = 400;
       $ret->headline = adminSiteName() . ' : Login';
       $ret->message = "<p>Bad password. Try again.</p> $loginForm";
