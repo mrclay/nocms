@@ -11,6 +11,8 @@ Create some HTML, text, and JSON (with JSONSchema) files inside `content`. The u
 * A specified number of timestamped backups are kept on disk
 * Predictable filenames in `content` directory for use in your site/app
 * Auth system simple to integrate into something else
+* Very basic branding/theming via config/CSS
+* Installer creates config file and loads sample content (you must configure the password hash by file).
 
 ## Requirements
 
@@ -58,6 +60,6 @@ Reload http://example.com/nocms-public/ and log in.
 
 The good: Password auth is done via `password_verify` and the session is verified via a [JWT](https://github.com/firebase/php-jwt) stored in a cookie. Content edits require POST operations protected by CSRF tokens (HMAC-SHA-256). An attacker who gained entry could not alter PHP files.
 
-The not great: Authentication is single-user. The JWT doesn't expire. There's nothing fancy like IP banning/throttling or user logging. An attacker that gained entry could edit raw HTML/JSON that you possibly display/consume on the site.
+The not great: Authentication is single-user. Password cannot be changed via the web. The JWT doesn't expire. There's nothing fancy like IP banning/throttling or user logging. JSON is not schema-validated server-side. An attacker that gained entry could edit raw HTML/JSON that you possibly display/consume on the site.
 
 **Tip:** For best protection, run NoCMS-edited content through an [HTML sanitizer](https://packagist.org/packages/ezyang/htmlpurifier) before output. Yes, I should probably build this in.
