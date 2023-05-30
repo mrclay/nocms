@@ -1,8 +1,6 @@
 # NoCMS
 
-NoCMS is a just a web-based editor for premade files in a single directory. 
-
-Create some HTML, text, and JSON (with JSONSchema) files inside `content`. The user can log in and edit them. The site can use them for content/settings.
+NoCMS is a just a web-based editor for premade files in a single directory.
 
 ## Use case
 
