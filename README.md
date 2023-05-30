@@ -7,12 +7,12 @@ Create some HTML, text, and JSON (with JSONSchema) files inside `content`. The u
 ## Features
 
 * HTML fragments edited with CKEditor
-* JSON edited/validated client-side by react-jsonschema-form
+* JSON edited/validated client-side by [react-jsonschema-form](https://github.com/rjsf-team/react-jsonschema-form)
 * A specified number of timestamped backups are kept on disk
 * Predictable filenames in `content` directory for use in your site/app
 * Auth system simple to integrate into something else
 * Very basic branding/theming via config/CSS
-* Installer creates config file and loads sample content (you must configure the password hash by file).
+* Basic web-based installer with sample content
 
 ## Requirements
 
