@@ -27,11 +27,7 @@ bash run-composer.sh install
 docker compose up -d
 ```
 
-Load http://localhost:8080/nocms/install.php to generate a config file.
-
-Load http://localhost:8080/nocms/ and give a password to get a hash.
-
-Place the hash into `nocms-public/nocms-config.php` to allow authentication.
+Load http://localhost:8080/nocms/install.php and submit a new password.
 
 Reload http://localhost:8080/nocms/ and log in.
 
@@ -47,13 +43,9 @@ Place `vendor` inside `nocms-private`.
 
 **Tip:** Ideally place `nocms-private` outside the DocumentRoot.
 
-Load http://example.com/nocms-public/install.php to generate a config file.
+Load http://example.com/nocms-public/install.php and submit a new password.
 
-**Warning!** If you don't see `nocms-public/nocms-config.php` on the filesystem, installation has failed.
-
-Load http://example.com/nocms-public/ and give a password to get a hash.
-
-Place the hash into `nocms-public/nocms-config.php` to allow authentication.
+(If the config cannot be written, create it from the given content.)
 
 Reload http://example.com/nocms-public/ and log in.
 
