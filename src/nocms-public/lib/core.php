@@ -10,15 +10,9 @@ namespace NoCms;
 
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
-use JsArray;
-
-if (!class_exists('JsArray')) {
-  require __DIR__ . '/lib/JsArray.php';
-}
 
 const NAME_PATTERN = '@(\.txt|\.(?:block)\.html|\.json)$@';
 const BASENAME_PATTERN = '@^([a-zA-Z0-9-_ ]+)(\.txt|\.block\.html|\.json)$@';
-
 
 /////////////////////////////////////////////////////////////////// AUTH API
 
@@ -43,9 +37,9 @@ function authenticate() {
   if (!empty($_POST['nocms-logout'])) {
     assertNotCsrf();
     logout();
-    $ret->location = getConfig('siteHome') . "?loggedOut=1";
+    $ret->location = getConfig()->siteHome . "?loggedOut=1";
     $ret->statusCode = 302;
-    $ret->headline = adminSiteName() . " : Logged out";
+    $ret->headline = getConfig()->adminSiteName . " : Logged out";
     $ret->message = "<p>You are logged out.</p>";
     return $ret;
   }
@@ -53,10 +47,10 @@ function authenticate() {
   $pwd = (string) ($_POST['nocms-pwd'] ?? '');
   $jwt = rawurldecode((string) ($_COOKIE['nocms-jwt'] ?? ''));
 
-  if (!getConfig('jwtSecretKey')) {
+  if (!getConfig()->secretKey) {
     $ret->statusCode = 500;
-    $ret->headline = adminSiteName() . " : Setup";
-    $ret->message = '<p><code>jwtSecretKey</code> not set.</p>';
+    $ret->headline = getConfig()->adminSiteName . " : Setup";
+    $ret->message = '<p><code>secretKey</code> not set.</p>';
     return $ret;
   }
 
@@ -91,35 +85,35 @@ EOD;
     </form>
 EOD;
 
-  if (!getConfig('pwdHash')) {
+  if (!getUser()->pwdHash) {
     // Help set up.
     if ($pwd) {
       // Give the new hash.
       $hash = password_hash($pwd, PASSWORD_BCRYPT);
 
       $ret->statusCode = 500;
-      $ret->headline = adminSiteName() . " : Setup";
+      $ret->headline = getConfig()->adminSiteName . " : Setup";
       $ret->message = "<p>Set <code>pwdHash</code> to: <code>{$h($hash)}</code></p>";
       return $ret;
     }
 
     $ret->statusCode = 500;
-    $ret->headline = adminSiteName() . " : Setup";
+    $ret->headline = getConfig()->adminSiteName . " : Setup";
     $ret->message = $setPwdForm;
     return $ret;
   }
 
   if ($pwd) {
     // Trying to log in.
-    if (!password_verify($pwd, getConfig('pwdHash'))) {
+    if (!password_verify($pwd, getUser()->pwdHash)) {
       $ret->statusCode = 400;
-      $ret->headline = adminSiteName() . ' : Login';
+      $ret->headline = getConfig()->adminSiteName . ' : Login';
       $ret->message = "<p>Bad password. Try again.</p> $loginForm";
       return $ret;
     }
 
     // Success, put jwt in cookie.
-    $jwt = JWT::encode([], getConfig('jwtSecretKey'), 'HS256');
+    $jwt = JWT::encode([], getConfig()->secretKey, 'HS256');
 
     $cookiePath = $_SERVER['REQUEST_URI'];
     [$cookiePath] = explode('?', $cookiePath);
@@ -127,7 +121,7 @@ EOD;
 
     $ret->location = $_SERVER['REQUEST_URI'];
     $ret->statusCode = 302;
-    $ret->headline = adminSiteName(). " : Login";
+    $ret->headline = getConfig()->adminSiteName. " : Login";
     $ret->message = "<p>You are logged in.</p>";
     return $ret;
   }
@@ -137,7 +131,7 @@ EOD;
     return $ret;
   }
 
-  $ret->headline = adminSiteName() . " : Login";
+  $ret->headline = getConfig()->adminSiteName . " : Login";
   $ret->message = $loginForm;
   return $ret;
 }
@@ -157,7 +151,7 @@ function isAuthenticated() {
   }
 
   try {
-    JWT::decode($jwt, new Key(getConfig('jwtSecretKey'), 'HS256'));
+    JWT::decode($jwt, new Key(getConfig()->secretKey, 'HS256'));
     return true;
   } catch (\Exception $e) {
     return false;
@@ -166,27 +160,20 @@ function isAuthenticated() {
 
 /////////////////////////////////////////////////////////////////// NoCMS pages
 
-/**
- * @param 'numBackups'|'siteName'|'siteHome'|'htmlRoot'|'privatePath'|'contentPath'|'adminSiteName' $key
- */
-function getConfig(string $key) {
+function getConfig(): Config {
   global $_NOCMS_CONFIG;
-  if (empty($_NOCMS_CONFIG)) {
-    throw new Exception('Config not loaded. $_NOCMS_CONFIG is not set.');
+  if (!($_NOCMS_CONFIG instanceof Config)) {
+    throw new Exception('Config not loaded. $_NOCMS_CONFIG is not a Config instance.');
   }
-
-  if (!array_key_exists($key, $_NOCMS_CONFIG)) {
-    throw new \InvalidArgumentException("\$_NOCMS_CONFIG does not have: $key");
-  }
-  return $_NOCMS_CONFIG[$key];
+  return $_NOCMS_CONFIG;
 }
 
-function adminSiteName() {
-  return getConfig('adminSiteName');
+function getUser(): User {
+  return getConfig()->users[0];
 }
 
 function assertNotCsrf() {
-  $key = getConfig('jwtSecretKey');
+  $key = getConfig()->secretKey;
   $token = (string)($_POST['nocms-csrf'] ?? '');
   [$value, $hmac] = explode(' ', $token);
 
@@ -196,7 +183,7 @@ function assertNotCsrf() {
 }
 
 function createCsrfToken() {
-  $key = getConfig('jwtSecretKey');
+  $key = getConfig()->secretKey;
   $value = bin2hex(random_bytes(16));
   $hmac = hash_hmac('sha256', $value, $key);
   return "$value $hmac";
@@ -241,7 +228,7 @@ function handleRequest() {
 }
 
 function pageIndex() {
-  $path = getConfig('contentPath');
+  $path = getConfig()->contentPath;
   $lis = getAllAssets()
     ->map(function (Asset $asset) {
     $qs = '?' . http_build_query([
@@ -351,7 +338,7 @@ function getAsset(string $basename, $notFoundValue = null) {
     return $notFoundValue;
   }
 
-  $path = getConfig('contentPath');
+  $path = getConfig()->contentPath;
   $file = $path . DIRECTORY_SEPARATOR . "{$match['name']}{$type->ext}";
   return Asset::factory($file);
 }
@@ -360,7 +347,7 @@ function getAsset(string $basename, $notFoundValue = null) {
  * @return Collection<Asset>
  */
 function getAllAssets() {
-  $path = getConfig('contentPath');
+  $path = getConfig()->contentPath;
   return JsArray::from(scandir($path))
     ->map(fn($entry) => Asset::factory($path . DIRECTORY_SEPARATOR . $entry))
     ->filter('is_object');
@@ -385,14 +372,14 @@ function assertValidBasename(string $basename) {
  * @return never
  */
 function sendPage(string $title, string $content, string $beforeBodyEnd = '') {
-  $siteHome = getConfig('siteHome');
-  $siteName = getConfig('siteName');
-  $htmlRoot = getConfig('htmlRoot');
-  $htmlRoot = getConfig('htmlRoot');
+  $siteHome = getConfig()->siteHome;
+  $siteName = getConfig()->siteName;
+  $htmlRoot = getConfig()->htmlRoot;
+  $htmlRoot = getConfig()->htmlRoot;
   $loggedIn = isAuthenticated();
 
   htmlHeaders();
-  include __DIR__ . '/lib/template.php';
+  include __DIR__ . '/template.php';
   exit;
 }
 
@@ -492,7 +479,7 @@ class Asset {
   }
 
   function update(string $content) {
-    $numBackups = getConfig('numBackups');
+    $numBackups = getConfig()->numBackups;
     if ($numBackups) {
       // store current rev
       copy($this->file, $this->file . $_SERVER['REQUEST_TIME']);

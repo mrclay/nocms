@@ -69,13 +69,13 @@ $hash = password_hash($pwd, PASSWORD_BCRYPT);
 $code = file_get_contents(__DIR__ . "{$ds}nocms-config.example.php");
 
 $code = str_replace(
-  "'pwdHash' => '',",
-  "'pwdHash' => " . var_export($hash, true) . ",",
+  "pwdHash: '',",
+  "pwdHash: " . var_export($hash, true) . ",",
   $code
 );
 $code = str_replace(
-  "'jwtSecretKey' => '',",
-  "'jwtSecretKey' => " . var_export(base64_encode(random_bytes(32)), true) . ",",
+  "secretKey: '',",
+  "secretKey: " . var_export(base64_encode(random_bytes(32)), true) . ",",
   $code
 );
 
@@ -92,13 +92,13 @@ if (!$path) {
 }
 
 $code = str_replace(
-  "'privatePath' => null,",
-  "'privatePath' => " . var_export($path, true) . ",",
+  "privatePath: '',",
+  "privatePath: " . var_export($path, true) . ",",
   $code
 );
 $code = str_replace(
-  "'contentPath' => null,",
-  "'contentPath' => " . var_export("$path{$ds}content", true) . ",",
+  "contentPath: '',",
+  "contentPath: " . var_export("$path{$ds}content", true) . ",",
   $code
 );
 

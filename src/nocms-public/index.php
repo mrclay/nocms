@@ -4,6 +4,8 @@ namespace NoCms;
 
 $ds = DIRECTORY_SEPARATOR;
 
+require __DIR__ . "{$ds}lib{$ds}autoload.php";
+
 // Load config.
 
 if (!is_file(__DIR__ . "{$ds}nocms-config.php")) {
@@ -14,16 +16,14 @@ require __DIR__ . "{$ds}nocms-config.php";
 
 // Verify private path.
 
-if (!is_dir($_NOCMS_CONFIG['privatePath'])) {
-  die('$_NOCMS_CONFIG["privatePath"] is not a directory.');
+if (!is_dir($_NOCMS_CONFIG->privatePath)) {
+  die('$_NOCMS_CONFIG->privatePath is not a directory.');
 }
-
-$private = $_NOCMS_CONFIG['privatePath'];
 
 // Find/load autoloader.
 
 $autoloads = [
-  "{$private}{$ds}vendor{$ds}autoload.php",
+  "{$_NOCMS_CONFIG->privatePath}{$ds}vendor{$ds}autoload.php",
   __DIR__ . "{$ds}vendor{$ds}autoload.php",
 ];
   $autoloadFound = false;
@@ -36,8 +36,6 @@ foreach ($autoloads as $autoload) {
 if (!$autoloadFound) {
   die('vendor/autoload.php not found. Was `composer install` run?');
 }
-
-require "{$private}{$ds}api.php";
 
 try {
   handleRequest();

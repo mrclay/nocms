@@ -1,5 +1,10 @@
 <?php // Dangerously untested
 
+namespace NoCms;
+
+use ArrayAccess;
+use Countable;
+
 /**
  * @template T
  * @property-read int $length
