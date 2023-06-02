@@ -1,164 +1,12 @@
 <?php
 
-/**
- * To use this file you must first require its autoloader:
- *
- * require '/path/to/nocms/vendor/autoload.php';
- */
-
 namespace NoCms;
 
-use Firebase\JWT\JWT;
-use Firebase\JWT\Key;
+use NoCms\Authenticator;
+use NoCms\Asset\Type as AssetType;
 
 const NAME_PATTERN = '@(\.txt|\.(?:block)\.html|\.json)$@';
 const BASENAME_PATTERN = '@^([a-zA-Z0-9-_ ]+)(\.txt|\.block\.html|\.json)$@';
-
-/////////////////////////////////////////////////////////////////// AUTH API
-
-/**
- * Remove the authentication cookie.
- */
-function logout() {
-  $cookiePath = $_SERVER['REQUEST_URI'];
-  [$cookiePath] = explode('?', $cookiePath);
-  setcookie('nocms-jwt', '', 0, $cookiePath);
-}
-
-/**
- * Require the user to be logged in. If not, display a login form.
- *
- * @return AuthenticateResult
- */
-function authenticate() {
-  $ret = new AuthenticateResult();
-  $h = escaper();
-
-  if (!empty($_POST['nocms-logout'])) {
-    assertNotCsrf();
-    logout();
-    $ret->location = getConfig()->siteHome . "?loggedOut=1";
-    $ret->statusCode = 302;
-    $ret->headline = getConfig()->adminSiteName . " : Logged out";
-    $ret->message = "<p>You are logged out.</p>";
-    return $ret;
-  }
-
-  $pwd = (string) ($_POST['nocms-pwd'] ?? '');
-  $jwt = rawurldecode((string) ($_COOKIE['nocms-jwt'] ?? ''));
-
-  if (!getConfig()->secretKey) {
-    $ret->statusCode = 500;
-    $ret->headline = getConfig()->adminSiteName . " : Setup";
-    $ret->message = '<p><code>secretKey</code> not set.</p>';
-    return $ret;
-  }
-
-  $setPwdForm = <<<EOD
-    <form action='' method=POST class="form-horizontal">
-      <div class="form-group">
-        <label for='nocms-pwd' class="col-sm-2 control-label">New password</label>
-        <div class="col-sm-10">
-          <input type=password name='nocms-pwd' id='nocms-pwd' class="form-control" />
-        </div>
-      </div>
-      <div class="form-group">
-        <div class="col-sm-offset-2 col-sm-10">
-          <button type=submit class="btn btn-default">Set password</button>
-        </div>
-      </div>
-    </form>
-EOD;
-  $loginForm = <<<EOD
-    <form action='' method=POST class="form-horizontal">
-      <div class="form-group">
-        <label for='nocms-pwd' class="col-sm-2 control-label">Password</label>
-        <div class="col-sm-10">
-          <input type=password name='nocms-pwd' id='nocms-pwd' class="form-control" />
-        </div>
-      </div>
-      <div class="form-group">
-        <div class="col-sm-offset-2 col-sm-10">
-          <button type=submit class="btn btn-default">Log in</button>
-        </div>
-      </div>
-    </form>
-EOD;
-
-  if (!getUser()->pwdHash) {
-    // Help set up.
-    if ($pwd) {
-      // Give the new hash.
-      $hash = password_hash($pwd, PASSWORD_BCRYPT);
-
-      $ret->statusCode = 500;
-      $ret->headline = getConfig()->adminSiteName . " : Setup";
-      $ret->message = "<p>Set <code>pwdHash</code> to: <code>{$h($hash)}</code></p>";
-      return $ret;
-    }
-
-    $ret->statusCode = 500;
-    $ret->headline = getConfig()->adminSiteName . " : Setup";
-    $ret->message = $setPwdForm;
-    return $ret;
-  }
-
-  if ($pwd) {
-    // Trying to log in.
-    if (!password_verify($pwd, getUser()->pwdHash)) {
-      $ret->statusCode = 400;
-      $ret->headline = getConfig()->adminSiteName . ' : Login';
-      $ret->message = "<p>Bad password. Try again.</p> $loginForm";
-      return $ret;
-    }
-
-    // Success, put jwt in cookie.
-    $jwt = JWT::encode([], getConfig()->secretKey, 'HS256');
-
-    $cookiePath = $_SERVER['REQUEST_URI'];
-    [$cookiePath] = explode('?', $cookiePath);
-    setcookie('nocms-jwt', rawurlencode($jwt), 0, $cookiePath);
-
-    $ret->location = $_SERVER['REQUEST_URI'];
-    $ret->statusCode = 302;
-    $ret->headline = getConfig()->adminSiteName. " : Login";
-    $ret->message = "<p>You are logged in.</p>";
-    return $ret;
-  }
-
-  if (isAuthenticated()) {
-    $ret->authenticated = true;
-    return $ret;
-  }
-
-  $ret->headline = getConfig()->adminSiteName . " : Login";
-  $ret->message = $loginForm;
-  return $ret;
-}
-
-class AuthenticateResult {
-  public $authenticated = false;
-  public $headline = '';
-  public $message = '';
-  public $statusCode = 200;
-  public $location = '';
-}
-
-function isAuthenticated() {
-  $jwt = rawurldecode((string) ($_COOKIE['nocms-jwt'] ?? ''));
-  if (!$jwt) {
-    return false;
-  }
-
-  try {
-    JWT::decode($jwt, new Key(getConfig()->secretKey, 'HS256'));
-    return true;
-  } catch (\Exception $e) {
-    return false;
-  }
-}
-
-/////////////////////////////////////////////////////////////////// NoCMS pages
 
 function getConfig(): Config {
   global $_NOCMS_CONFIG;
@@ -172,21 +20,8 @@ function getUser(): User {
   return getConfig()->users[0];
 }
 
-function assertNotCsrf() {
-  $key = getConfig()->secretKey;
-  $token = (string)($_POST['nocms-csrf'] ?? '');
-  [$value, $hmac] = explode(' ', $token);
-
-  if (!hash_equals($hmac, hash_hmac('sha256', $value, $key))) {
-    throw new \Exception('Bad CRSF token.');
-  }
-}
-
 function createCsrfToken() {
-  $key = getConfig()->secretKey;
-  $value = bin2hex(random_bytes(16));
-  $hmac = hash_hmac('sha256', $value, $key);
-  return "$value $hmac";
+  return (new CSRF(getConfig()))->createCsrfToken();
 }
 
 function escaper() {
@@ -200,7 +35,7 @@ function handleRequest() {
   }
   $action = (string) ($_POST['action'] ?? '');
 
-  $res = authenticate();
+  $res = (new Authenticator(getConfig()))->authenticate();
   if ($res->location) {
     header("Cache-Control: no-cache");
     header("Location: {$res->location}", true, 302);
@@ -217,7 +52,7 @@ function handleRequest() {
   }
 
   if ($action) {
-    assertNotCsrf();
+    (new CSRF(getConfig()))->assertNotCsrf();
   }
 
   if ($action === 'edit') {
@@ -372,11 +207,13 @@ function assertValidBasename(string $basename) {
  * @return never
  */
 function sendPage(string $title, string $content, string $beforeBodyEnd = '') {
-  $siteHome = getConfig()->siteHome;
-  $siteName = getConfig()->siteName;
-  $htmlRoot = getConfig()->htmlRoot;
-  $htmlRoot = getConfig()->htmlRoot;
-  $loggedIn = isAuthenticated();
+  $config = getConfig();
+  $siteHome = $config->siteHome;
+  $siteName = $config->siteName;
+  $htmlRoot = $config->htmlRoot;
+  $htmlRoot = $config->htmlRoot;
+  $loggedIn = (new Authenticator($config))->isAuthenticated();
+  unset($config);
 
   htmlHeaders();
   include __DIR__ . '/template.php';
@@ -386,131 +223,4 @@ function sendPage(string $title, string $content, string $beforeBodyEnd = '') {
 function htmlHeaders() {
   header('Content-Type: text/html; charset=utf8');
   header('Cache-Control: no-cache');
-}
-
-class Asset {
-
-  protected $file;
-  protected $meta = [];
-
-  private function __construct($file, $meta = []) {
-    $this->file = $file;
-    $this->meta = $meta;
-  }
-
-  static function factory(string $file) {
-    if (!is_file($file) || !is_readable($file)) {
-      return null;
-    }
-
-    $dirname = dirname($file);
-    $basename = basename($file);
-    if ('.' === $basename[0] || !preg_match(NAME_PATTERN, $basename, $m)) {
-      return null;
-    }
-
-    $meta = [];
-
-    if (str_ends_with($basename, ".json")) {
-      $name = substr($basename, 0, strlen($basename) - 5);
-
-      $schema = $dirname . DIRECTORY_SEPARATOR . ".$name.schema.json";
-      $meta['jsonSchema'] = $schema;
-
-      if (!is_file($schema) || !is_readable($schema)) {
-        return null;
-      }
-    }
-
-    return new self($file, $meta);
-  }
-
-  function getFile() {
-    return $this->file;
-  }
-
-  function getBasename() {
-    return basename($this->file);
-  }
-
-  function getType() {
-    return Asset::getAllTypes()
-      ->find(fn (AssetType $type) => str_ends_with($this->file, $type->ext));
-  }
-
-  /**
-   * @return JsArray<AssetType>
-   */
-  static function getAllTypes() {
-    static $types = null;
-    if ($types === null) {
-      $types = JsArray::from([
-        new AssetType(typeName: 'block', isHtml: true, ext: '.block.html'),
-        new AssetType(typeName: 'text', isHtml: false, ext: '.txt'),
-        new AssetType(typeName: 'json', isHtml: false, ext: '.json'),
-      ]);
-    }
-    return $types;
-  }
-
-  function getTitle() {
-    $ext = $this->getType()->ext;
-
-    $beforeExt = substr($this->getBasename(), 0, - strlen($ext));
-    $title = preg_replace('@([a-z])_([a-z])@i', '$1 $2', $beforeExt);
-
-    return ucwords($title);
-  }
-
-  function getContent() {
-    return file_get_contents($this->file);
-  }
-
-  function getJsonSchema() {
-    if (empty($this->meta['jsonSchema'])) {
-      return "";
-    }
-
-    return file_get_contents($this->meta['jsonSchema']);
-  }
-
-  function output() {
-    readfile($this->file);
-  }
-
-  function update(string $content) {
-    $numBackups = getConfig()->numBackups;
-    if ($numBackups) {
-      // store current rev
-      copy($this->file, $this->file . $_SERVER['REQUEST_TIME']);
-
-      $revPattern = '@^' . preg_quote($this->getBasename(), '@') . '\\d+$@';
-      // count backups newest to eldest
-      $revCount = 0;
-      foreach (scandir(dirname($this->file), 1) as $entry) {
-        if (!preg_match($revPattern, $entry)) {
-          continue;
-        }
-
-        $revCount++;
-        if ($revCount <= $numBackups) {
-          continue;
-        }
-
-        unlink(dirname($this->file) . DIRECTORY_SEPARATOR . $entry);
-      }
-    }
-
-    return file_put_contents($this->file, $content);
-  }
-
-}
-
-class AssetType {
-  function __construct(
-    public readonly string $typeName,
-    public readonly bool $isHtml,
-    public readonly string $ext,
-  ) {}
-
 }
