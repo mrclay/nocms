@@ -4,14 +4,16 @@ namespace NoCms;
 
 use ArrayAccess;
 use Countable;
+use Iterator;
 
 /**
  * @template T
  * @property-read int $length
  * @property-read T[] $items
  */
-class JsArray implements Countable, ArrayAccess {
+class JsArray implements ArrayAccess, Countable, Iterator {
   private $items;
+  private $position = 0;
 
   /**
    * @param T[] $items
@@ -54,6 +56,10 @@ class JsArray implements Countable, ArrayAccess {
 
   function count(): int {
     return count($this->items);
+  }
+
+  function current(): mixed {
+    return $this->items[$this->position] ?? null;
   }
 
   /**
@@ -173,6 +179,10 @@ class JsArray implements Countable, ArrayAccess {
     return implode($sep, $this->map(fn($el) => (string) $el)->items);
   }
 
+  function key(): mixed {
+    return $this->position;
+  }
+
   /**
    * @return JsArray<int>
    */
@@ -205,6 +215,10 @@ class JsArray implements Countable, ArrayAccess {
       $out[] = $func($item, $idx);
     }
     return new self($out);
+  }
+
+  function next(): void {
+    ++$this->position;
   }
 
   /**
@@ -262,6 +276,10 @@ class JsArray implements Countable, ArrayAccess {
     return array_reduce($this->items, $func, $initial);
   }
 
+  function reduceRight(callable $func, $initial) {
+    return array_reduce(array_reverse($this->items), $func, $initial);
+  }
+
   /**
    * @return JsArray<T>
    */
@@ -269,8 +287,8 @@ class JsArray implements Countable, ArrayAccess {
     $this->items = array_reverse($this->items);
   }
 
-  function reduceRight(callable $func, $initial) {
-    return array_reduce(array_reverse($this->items), $func, $initial);
+  function rewind(): void {
+    $this->position = 0;
   }
 
   /**
@@ -330,6 +348,10 @@ class JsArray implements Countable, ArrayAccess {
    */
   function unshift() {
     return array_unshift($this->items, func_get_args());
+  }
+
+  function valid(): bool {
+    return isset($this->items[$this->position]);
   }
 
   /**
