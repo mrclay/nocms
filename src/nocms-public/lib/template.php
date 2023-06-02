@@ -12,10 +12,6 @@ $h = \NoCms\escaper();
     <title><?= $h(strip_tags($title)) ?> | <?= $h($siteName) ?></title>
     <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
     <link rel="stylesheet" href="./index.css">
-    <script src="https://cdn.ckeditor.com/ckeditor5/38.0.1/balloon/ckeditor.js"></script>
-    <script crossorigin src="https://unpkg.com/react@17.0.2/umd/react.development.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@17.0.2/umd/react-dom.development.js"></script>
-    <script src="./static/jsonschema-form.umd.js"></script>
   </head>
   <body>
     <div class="page">
@@ -51,7 +47,8 @@ $h = \NoCms\escaper();
       <?= $content ?>
     </div>
 
-    <script type="module" src="./static/index.js"></script>
+    <script src="https://cdn.ckeditor.com/ckeditor5/38.0.1/balloon/ckeditor.js"></script>
+    <script async src="./static/bundle.js"></script>
     <?= $beforeBodyEnd ?>
   </body>
 </html>

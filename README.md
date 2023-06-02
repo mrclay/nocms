@@ -56,3 +56,11 @@ The good: Password auth is done via `password_verify` and the session is verifie
 The not great: Authentication is single-user. Password cannot be changed via the web. The JWT doesn't expire. There's nothing fancy like IP banning/throttling or user logging. JSON is not schema-validated server-side. An attacker that gained entry could edit raw HTML/JSON that you possibly display/consume on the site.
 
 **Tip:** For best protection, run NoCMS-edited content through an [HTML sanitizer](https://packagist.org/packages/ezyang/htmlpurifier) before output. Yes, I should probably build this in.
+
+## Rebuilding the JS bundle
+
+```
+nvm use
+npm ci
+npm run build
+```
