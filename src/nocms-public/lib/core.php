@@ -212,7 +212,7 @@ function sendPage(string $title, string $content, string $beforeBodyEnd = '') {
   $siteName = $config->siteName;
   $htmlRoot = $config->htmlRoot;
   $htmlRoot = $config->htmlRoot;
-  $loggedIn = (new Authenticator($config))->isAuthenticated();
+  $user = (new Authenticator($config))->getAuthenticatedUser();
   unset($config);
 
   htmlHeaders();

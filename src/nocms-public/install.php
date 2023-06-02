@@ -39,10 +39,17 @@ if (is_file($configFile)) {
   sendPage("<p class='alert alert-info'>NoCMS already installed.</p>");
 }
 
-$pwd = (string)($_POST['nocms-pwd'] ?? '');
+$username = (string) ($_POST['nocms-username'] ?? '');
+$pwd = (string) ($_POST['nocms-pwd'] ?? '');
 
 $setPwdForm = <<<EOD
   <form action='' method=POST class="form-horizontal">
+    <div class="form-group">
+      <label for='nocms-username' class="col-sm-2 control-label">Username</label>
+      <div class="col-sm-10">
+        <input type=text name='nocms-username' value=admin id='nocms-username' class="form-control">
+      </div>
+    </div>
     <div class="form-group">
       <label for='nocms-pwd' class="col-sm-2 control-label">New password</label>
       <div class="col-sm-10">
@@ -51,23 +58,39 @@ $setPwdForm = <<<EOD
     </div>
     <div class="form-group">
       <div class="col-sm-offset-2 col-sm-10">
-        <button type=submit class="btn btn-default">Set password</button>
+        <button type=submit class="btn btn-default">Create admin user</button>
       </div>
     </div>
   </form>
 EOD;
 
+if ($pwd === '') {
+  sendPage($setPwdForm);
+}
+
+$problems = '';
+
 if (strlen($pwd) < 8) {
-  $msg = $pwd === ''
-    ? ''
-    : '<p class="alert alert-danger">Password too short.</p>';
-  sendPage("$msg $setPwdForm");
+  $problems .= '<p class="alert alert-danger">Password too short.</p>';
+}
+$usernamePattern = '@^[0-9a-zA-Z-_\\@\\.]{3,}$@';
+if (!preg_match($usernamePattern, $username)) {
+  $problems .= "<p class='alert alert-danger'>Username did not match <code>{$h($usernamePattern)}</code>.</p>";
+}
+
+if ($problems) {
+  sendPage("$problems $setPwdForm");
 }
 
 $hash = password_hash($pwd, PASSWORD_BCRYPT);
 
 $code = file_get_contents(__DIR__ . "{$ds}nocms-config.example.php");
 
+$code = str_replace(
+  "username: 'admin',",
+  "username: " . var_export($username, true) . ",",
+  $code
+);
 $code = str_replace(
   "pwdHash: '',",
   "pwdHash: " . var_export($hash, true) . ",",

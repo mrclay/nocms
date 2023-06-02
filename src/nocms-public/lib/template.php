@@ -4,7 +4,7 @@ $h = \NoCms\escaper();
 /** @var string $siteName */
 /** @var string $htmlRoot */
 /** @var string $htmlRoot */
-/** @var string $loggedIn */
+/** @var \NoCms\User|null $user */
 ?>
 <!doctype html>
 <html>
@@ -19,11 +19,14 @@ $h = \NoCms\escaper();
   </head>
   <body>
     <div class="page">
-      <?php if ($loggedIn): ?>
+      <?php if ($user): ?>
       <form method="POST" action="" class="logout-form">
         <input type="hidden" name="nocms-csrf" value="<?= $h(\NoCms\createCsrfToken()) ?>">
         <input type="hidden" name="nocms-logout" value="1">
-        <button class="btn btn-default">Log out</button>
+        <div>
+          <?= $h($user->username) ?>
+          <button class="btn btn-default">Log out</button>
+        </div>
       </form>
       <?php endif; ?>
 
@@ -34,7 +37,7 @@ $h = \NoCms\escaper();
             <?= $h($siteName) ?>
           </a>
         </li>
-        <?php if ($loggedIn): ?>
+        <?php if ($user): ?>
           <li><a href="?page=index">Content</a></li>
         <?php endif; ?>
       </ol>

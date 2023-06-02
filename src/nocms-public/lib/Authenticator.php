@@ -31,6 +31,7 @@ class Authenticator {
       return $ret;
     }
 
+    $username = (string) ($_POST['nocms-username'] ?? '');
     $pwd = (string) ($_POST['nocms-pwd'] ?? '');
     $jwt = rawurldecode((string) ($_COOKIE['nocms-jwt'] ?? ''));
 
@@ -46,7 +47,7 @@ class Authenticator {
         <div class="form-group">
           <label for='nocms-pwd' class="col-sm-2 control-label">New password</label>
           <div class="col-sm-10">
-            <input type=password name='nocms-pwd' id='nocms-pwd' class="form-control" />
+            <input type=password name='nocms-pwd' id='nocms-pwd' class="form-control">
           </div>
         </div>
         <div class="form-group">
@@ -59,9 +60,15 @@ class Authenticator {
     $loginForm = <<<EOD
       <form action='' method=POST class="form-horizontal">
         <div class="form-group">
+          <label for='nocms-username' class="col-sm-2 control-label">Username</label>
+          <div class="col-sm-10">
+            <input type=text name='nocms-username' value=admin id='nocms-username' class="form-control">
+          </div>
+        </div>
+        <div class="form-group">
           <label for='nocms-pwd' class="col-sm-2 control-label">Password</label>
           <div class="col-sm-10">
-            <input type=password name='nocms-pwd' id='nocms-pwd' class="form-control" />
+            <input type=password name='nocms-pwd' id='nocms-pwd' class="form-control">
           </div>
         </div>
         <div class="form-group">
@@ -72,15 +79,17 @@ class Authenticator {
       </form>
     EOD;
 
-    if (!$this->config->getUser()->pwdHash) {
-      // Help set up.
+    // If the admin is not set up, help
+    $incompleteAdmin = JsArray::from($this->config->users)
+      ->find(fn (User $user) => $user->isAdmin && !$user->pwdHash);
+    if ($incompleteAdmin) {
       if ($pwd) {
         // Give the new hash.
         $hash = password_hash($pwd, PASSWORD_BCRYPT);
 
         $ret->statusCode = 500;
         $ret->headline = $this->config->adminSiteName . " : Setup";
-        $ret->message = "<p>Set <code>pwdHash</code> to: <code>{$h($hash)}</code></p>";
+        $ret->message = "<p>Set the user's <code>pwdHash</code> to: <code>{$h($hash)}</code></p>";
         return $ret;
       }
 
@@ -90,17 +99,20 @@ class Authenticator {
       return $ret;
     }
 
-    if ($pwd) {
+    if ($username && $pwd) {
       // Trying to log in.
-      if (!password_verify($pwd, $this->config->getUser()->pwdHash)) {
+      $user = JsArray::from($this->config->users)
+        ->find(fn (User $user) => $user->username === $username);
+
+      if (!$user || !password_verify($pwd, $user->pwdHash)) {
         $ret->statusCode = 400;
         $ret->headline = $this->config->adminSiteName . ' : Login';
-        $ret->message = "<p>Bad password. Try again.</p> $loginForm";
+        $ret->message = "<p>Credentials don't match a user. Try again.</p> $loginForm";
         return $ret;
       }
 
       // Success, put jwt in cookie.
-      $jwt = JWT::encode([], $this->config->secretKey, 'HS256');
+      $jwt = JWT::encode(['sub' => $username], $this->config->secretKey, 'HS256');
 
       $cookiePath = $_SERVER['REQUEST_URI'];
       [$cookiePath] = explode('?', $cookiePath);
@@ -113,8 +125,10 @@ class Authenticator {
       return $ret;
     }
 
-    if ($this->isAuthenticated()) {
+    $user = $this->getAuthenticatedUser();
+    if ($user) {
       $ret->authenticated = true;
+      $ret->user = $user;
       return $ret;
     }
 
@@ -123,17 +137,18 @@ class Authenticator {
     return $ret;
   }
 
-  function isAuthenticated(): bool {
+  function getAuthenticatedUser(): ?User {
     $jwt = rawurldecode((string) ($_COOKIE['nocms-jwt'] ?? ''));
     if (!$jwt) {
-      return false;
+      return null;
     }
 
     try {
-      JWT::decode($jwt, new Key($this->config->secretKey, 'HS256'));
-      return true;
+      $decoded = JWT::decode($jwt, new Key($this->config->secretKey, 'HS256'));
+      return JsArray::from($this->config->users)
+        ->find(fn (User $user) => $user->username === ($decoded->sub ?? ''));
     } catch (\Exception $e) {
-      return false;
+      return null;
     }
   }
 

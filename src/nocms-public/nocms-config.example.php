@@ -4,10 +4,11 @@ $_NOCMS_CONFIG = new \NoCms\Config(
   adminSiteName: 'NoCMS',
 
   users: [
-     new \NoCms\User(
-       username: 'admin',
-       pwdHash: '',
-     )
+    new \NoCms\User(
+      username: 'admin',
+      pwdHash: '',
+      isAdmin: true,
+    ),
   ],
 
   secretKey: '',

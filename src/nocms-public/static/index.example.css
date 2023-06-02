@@ -42,3 +42,8 @@ a:any-link {
 .logout-form {
   float: right;
 }
+.logout-form > div {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
