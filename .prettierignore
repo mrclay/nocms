@@ -1,0 +1,5 @@
+/vendor
+/sample-site
+/node_modules
+/src/nocms-private
+/src/nocms-public

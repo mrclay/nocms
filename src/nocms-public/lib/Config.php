@@ -7,7 +7,6 @@ use NoCms\User;
 class Config {
   function __construct(
     public readonly string $adminSiteName,
-    public readonly array /* User[] */ $users,
     public readonly string $secretKey,
     public readonly int $numBackups,
     public readonly string $siteName,
@@ -15,6 +14,7 @@ class Config {
     public readonly string $htmlRoot,
     public readonly string $privatePath,
     public readonly string $contentPath,
+    public readonly array /* User[] */ $users,
   ) {}
 
   function getUser(): User {

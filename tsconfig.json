@@ -4,6 +4,11 @@
     "lib": ["ES2019", "DOM"],
     "allowSyntheticDefaultImports": true,
     "sourceMap": true,
-    "jsx": "react-jsx"
+    "jsx": "react-jsx",
+    "baseUrl": "./src/js",
+    "paths": {
+      "@components/*": ["@components/*"],
+      "@util/*": ["@util/*"]
+    }
   },
 }
