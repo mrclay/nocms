@@ -47,7 +47,6 @@ $h = \NoCms\escaper();
       <?= $content ?>
     </div>
 
-    <script src="https://cdn.ckeditor.com/ckeditor5/38.0.1/balloon/ckeditor.js"></script>
     <script async src="./static/bundle.js"></script>
     <?= $beforeBodyEnd ?>
   </body>

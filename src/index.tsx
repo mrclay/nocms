@@ -1,7 +1,8 @@
 import React from 'react';
-import {createRoot} from "react-dom/client";
+import {createRoot} from 'react-dom/client';
 import validator from '@rjsf/validator-ajv8';
 import Form, {FormProps} from '@rjsf/core';
+import { getEditor } from './editor';
 
 (() => {
   const params = new URLSearchParams(location.search);
@@ -16,7 +17,7 @@ import Form, {FormProps} from '@rjsf/core';
   }
 })();
 
-(() => {
+(async () => {
   const form = document.querySelector('form[data-type="block"]');
   if (!form) {
     return;
@@ -27,15 +28,15 @@ import Form, {FormProps} from '@rjsf/core';
     throw new Error('#editor is missing');
   }
 
-  let editor: any;
-  (window as any).BalloonEditor
-    .create(div)
-    .then((newEditor: any) => {
-      editor = newEditor;
-    })
-    .catch((error: Error) => {
-      console.error(error);
-    });
+  // Raw submit
+  if (!(div instanceof HTMLDivElement)) {
+    return;
+  }
+
+  const editor = await getEditor(div);
+  if (!editor) {
+    return;
+  }
 
   form.addEventListener('submit', () => {
     const content = document.createElement('input');
